@@ -13,7 +13,8 @@ defmodule ExYUV.MixProject do
       compilers: [:elixir_make] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      package: package()
     ]
   end
 
@@ -39,6 +40,14 @@ defmodule ExYUV.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
+    ]
+  end
+
+  defp package do
+    [
+      name: "ex_yuv",
+      files: ~w(c_src lib mix.exs README.md Makefile LICENSE),
+      links: %{"Github" => @source_url}
     ]
   end
 end

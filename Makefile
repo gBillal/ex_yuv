@@ -1,7 +1,6 @@
 
 CXXFLAGS?=-O2 -fomit-frame-pointer -fPIC
 CXXFLAGS+=-Ic_src/libyuv/include/
-YUV_A = c_src/libyuv/libyuv.a
 
 PRIV_DIR = $(MIX_APP_PATH)/priv
 YUV_NIF_SO = $(PRIV_DIR)/yuv_nif.so
@@ -70,12 +69,9 @@ LOCAL_OBJ_FILES := \
 
 all: $(YUV_NIF_SO)
 
-$(YUV_A): $(LOCAL_OBJ_FILES)
-	$(AR) $(ARFLAGS) $@ $(LOCAL_OBJ_FILES)
-
-$(YUV_NIF_SO): $(YUV_A) $(SRC)
+$(YUV_NIF_SO): $(LOCAL_OBJ_FILES) $(SRC)
 	mkdir -p $(PRIV_DIR)
-	$(CC) $(CFLAGS) $(IFLAGS) $(LFLAGS) $(SRC) -o $(YUV_NIF_SO) -Wl,--whole-archive $(YUV_A) -Wl,--no-whole-archive
+	$(CC) $(CFLAGS) $(IFLAGS) $(LFLAGS) $(SRC) $(LOCAL_OBJ_FILES) -o $(YUV_NIF_SO)
 
 clean:
-	/bin/rm -f c_src/libyuv/source/*.o $(YUV_A) $(YUV_NIF_SO)
+	/bin/rm -f $(LOCAL_OBJ_FILES) $(YUV_NIF_SO)
