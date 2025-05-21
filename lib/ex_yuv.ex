@@ -10,10 +10,15 @@ defmodule ExYUV do
   @type u_plane :: binary()
   @type v_plane :: binary()
 
+  @type i420 :: binary() | {y_plane(), u_plane(), v_plane()} | [binary()]
+
   @doc """
-  Converts I420 YUV format to RGB24 format.
+  Converts from I420 to RGB24 format.
+
+  The input should be the planes (Y, U and V), in case a binary is
+  provided, it'll try to get the planes from it.
   """
-  @spec i420_to_raw!(binary(), width(), height()) :: binary()
+  @spec i420_to_raw!(i420(), width(), height()) :: binary()
   def i420_to_raw!(data, width, height) do
     {y_plane, u_plane, v_plane} =
       case data do
@@ -23,6 +28,14 @@ defmodule ExYUV do
       end
 
     NIF.i420_to_raw(y_plane, u_plane, v_plane, width, height)
+  end
+
+  @doc """
+  Converts from RGB24 to I420 format.
+  """
+  @spec raw_to_i420!(binary(), width(), height()) :: {y_plane(), u_plane(), v_plane()}
+  def raw_to_i420!(data, width, height) do
+    NIF.raw_to_i420(data, width, height)
   end
 
   defp planes_from_binary(data, width, height, :I420) when is_binary(data) do
