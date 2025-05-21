@@ -24,3 +24,7 @@ ex_yuv-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# ignore .o files
+/c_src/libyuv/**/*.o
+/c_src/libyuv/libyuv.a

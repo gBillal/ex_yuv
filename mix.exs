@@ -10,6 +10,7 @@ defmodule ExYUV.MixProject do
       app: :ex_yuv,
       version: @version,
       elixir: "~> 1.15",
+      compilers: [:elixir_make] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs()
@@ -26,6 +27,7 @@ defmodule ExYUV.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:elixir_make, runtime: false},
       {:ex_doc, "~> 0.38", only: [:dev], runtime: false}
     ]
   end
