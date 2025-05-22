@@ -13,6 +13,14 @@ YUV_NIF_SO = $(PRIV_DIR)/yuv_nif.so
 CFLAGS = -shared -fPIC
 IFLAGS = -I$(LIBYUV_DIR)/include/ -I$(ERTS_INCLUDE_DIR)
 
+ifeq ($(shell uname -s),Darwin)
+	ifeq ($(shell uname -m),arm64)
+		CXXFLAGS+=-DLIBYUV_DISABLE_NEON -DLIBYUV_DISABLE_SVE
+	endif
+
+	CFLAGS+=-undefined dynamic_lookup -flat_namespace
+endif
+
 LOCAL_OBJ_FILES := \
 	$(LIBYUV_SRC)/compare.o           \
 	$(LIBYUV_SRC)/compare_common.o    \
@@ -77,11 +85,11 @@ $(YUV_NIF_SO): $(LOCAL_OBJ_FILES) $(SRC)
 	$(CC) $(CFLAGS) $(IFLAGS) $(LFLAGS) $(SRC) $(LOCAL_OBJ_FILES) -o $(YUV_NIF_SO)
 
 fetch_libyuv: 
-	mkdir -p $(LIBYUV_DIR)
-	if [ ! -d "$(LIBYUV_DIR)/.git" ]; then \
-		git clone -q --depth=1 $(LIBYUV_GIT_REPO) $(LIBYUV_DIR); \
+	@mkdir -p $(LIBYUV_DIR)
+	@if [ ! -d "$(LIBYUV_DIR)/.git" ]; then \
+		git clone --depth=1 $(LIBYUV_GIT_REPO) $(LIBYUV_DIR); \
 	fi
 
 clean:
-	# /bin/rm -rf $(LIBYUV_DIR)
+	/bin/rm -rf $(LIBYUV_DIR)
 	/bin/rm -f $(YUV_NIF_SO) $(LOCAL_OBJ_FILES)
