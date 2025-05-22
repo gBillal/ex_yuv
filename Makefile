@@ -1,77 +1,95 @@
+TEMP ?= $(HOME)/.cache
+LIBYUV_DIR ?= $(TEMP)/libyuv
+LIBYUV_GIT_REPO ?= https://chromium.googlesource.com/libyuv/libyuv
+LIBYUV_SRC = $(LIBYUV_DIR)/source
 
 CXXFLAGS?=-O2 -fomit-frame-pointer -fPIC
-CXXFLAGS+=-Ic_src/libyuv/include/
+CXXFLAGS+=-I$(LIBYUV_DIR)/include/
 
+SRC = c_src/yuv_nif.c
 PRIV_DIR = $(MIX_APP_PATH)/priv
 YUV_NIF_SO = $(PRIV_DIR)/yuv_nif.so
 
-SRC = c_src/yuv_nif.c
-CFLAGS = -fPIC -shared
-IFLAGS+=-Ic_src/libyuv/include/
-IFLAGS+=-I$(ERTS_INCLUDE_DIR)
+CFLAGS = -shared -fPIC
+IFLAGS = -I$(LIBYUV_DIR)/include/ -I$(ERTS_INCLUDE_DIR)
+
+ifeq ($(shell uname -s),Darwin)
+	ifeq ($(shell uname -m),arm64)
+		CXXFLAGS+=-DLIBYUV_DISABLE_NEON -DLIBYUV_DISABLE_SVE
+	endif
+
+	CFLAGS+=-undefined dynamic_lookup -flat_namespace
+endif
 
 LOCAL_OBJ_FILES := \
-	c_src/libyuv/source/compare.o           \
-	c_src/libyuv/source/compare_common.o    \
-	c_src/libyuv/source/compare_gcc.o       \
-	c_src/libyuv/source/compare_msa.o       \
-	c_src/libyuv/source/compare_neon.o      \
-	c_src/libyuv/source/compare_neon64.o    \
-	c_src/libyuv/source/compare_win.o       \
-	c_src/libyuv/source/convert.o           \
-	c_src/libyuv/source/convert_argb.o      \
-	c_src/libyuv/source/convert_from.o      \
-	c_src/libyuv/source/convert_from_argb.o \
-	c_src/libyuv/source/convert_jpeg.o      \
-	c_src/libyuv/source/convert_to_argb.o   \
-	c_src/libyuv/source/convert_to_i420.o   \
-	c_src/libyuv/source/cpu_id.o            \
-	c_src/libyuv/source/mjpeg_decoder.o     \
-	c_src/libyuv/source/mjpeg_validate.o    \
-	c_src/libyuv/source/planar_functions.o  \
-	c_src/libyuv/source/rotate.o            \
-	c_src/libyuv/source/rotate_any.o        \
-	c_src/libyuv/source/rotate_argb.o       \
-	c_src/libyuv/source/rotate_common.o     \
-	c_src/libyuv/source/rotate_gcc.o        \
-	c_src/libyuv/source/rotate_lsx.o        \
-	c_src/libyuv/source/rotate_msa.o        \
-	c_src/libyuv/source/rotate_neon.o       \
-	c_src/libyuv/source/rotate_neon64.o     \
-	c_src/libyuv/source/rotate_win.o        \
-	c_src/libyuv/source/row_any.o           \
-	c_src/libyuv/source/row_common.o        \
-	c_src/libyuv/source/row_gcc.o           \
-	c_src/libyuv/source/row_lasx.o          \
-	c_src/libyuv/source/row_lsx.o           \
-	c_src/libyuv/source/row_msa.o           \
-	c_src/libyuv/source/row_neon.o          \
-	c_src/libyuv/source/row_neon64.o        \
-	c_src/libyuv/source/row_rvv.o           \
-	c_src/libyuv/source/row_win.o           \
-	c_src/libyuv/source/scale.o             \
-	c_src/libyuv/source/scale_any.o         \
-	c_src/libyuv/source/scale_argb.o        \
-	c_src/libyuv/source/scale_common.o      \
-	c_src/libyuv/source/scale_gcc.o         \
-	c_src/libyuv/source/scale_lsx.o         \
-	c_src/libyuv/source/scale_msa.o         \
-	c_src/libyuv/source/scale_neon.o        \
-	c_src/libyuv/source/scale_neon64.o      \
-	c_src/libyuv/source/scale_rgb.o         \
-	c_src/libyuv/source/scale_rvv.o         \
-	c_src/libyuv/source/scale_uv.o          \
-	c_src/libyuv/source/scale_win.o         \
-	c_src/libyuv/source/video_common.o
+	$(LIBYUV_SRC)/compare.o           \
+	$(LIBYUV_SRC)/compare_common.o    \
+	$(LIBYUV_SRC)/compare_gcc.o       \
+	$(LIBYUV_SRC)/compare_msa.o       \
+	$(LIBYUV_SRC)/compare_neon.o      \
+	$(LIBYUV_SRC)/compare_neon64.o    \
+	$(LIBYUV_SRC)/compare_win.o       \
+	$(LIBYUV_SRC)/convert.o           \
+	$(LIBYUV_SRC)/convert_argb.o      \
+	$(LIBYUV_SRC)/convert_from.o      \
+	$(LIBYUV_SRC)/convert_from_argb.o \
+	$(LIBYUV_SRC)/convert_jpeg.o      \
+	$(LIBYUV_SRC)/convert_to_argb.o   \
+	$(LIBYUV_SRC)/convert_to_i420.o   \
+	$(LIBYUV_SRC)/cpu_id.o            \
+	$(LIBYUV_SRC)/mjpeg_decoder.o     \
+	$(LIBYUV_SRC)/mjpeg_validate.o    \
+	$(LIBYUV_SRC)/planar_functions.o  \
+	$(LIBYUV_SRC)/rotate.o            \
+	$(LIBYUV_SRC)/rotate_any.o        \
+	$(LIBYUV_SRC)/rotate_argb.o       \
+	$(LIBYUV_SRC)/rotate_common.o     \
+	$(LIBYUV_SRC)/rotate_gcc.o        \
+	$(LIBYUV_SRC)/rotate_lsx.o        \
+	$(LIBYUV_SRC)/rotate_msa.o        \
+	$(LIBYUV_SRC)/rotate_neon.o       \
+	$(LIBYUV_SRC)/rotate_neon64.o     \
+	$(LIBYUV_SRC)/rotate_win.o        \
+	$(LIBYUV_SRC)/row_any.o           \
+	$(LIBYUV_SRC)/row_common.o        \
+	$(LIBYUV_SRC)/row_gcc.o           \
+	$(LIBYUV_SRC)/row_lasx.o          \
+	$(LIBYUV_SRC)/row_lsx.o           \
+	$(LIBYUV_SRC)/row_msa.o           \
+	$(LIBYUV_SRC)/row_neon.o          \
+	$(LIBYUV_SRC)/row_neon64.o        \
+	$(LIBYUV_SRC)/row_rvv.o           \
+	$(LIBYUV_SRC)/row_win.o           \
+	$(LIBYUV_SRC)/scale.o             \
+	$(LIBYUV_SRC)/scale_any.o         \
+	$(LIBYUV_SRC)/scale_argb.o        \
+	$(LIBYUV_SRC)/scale_common.o      \
+	$(LIBYUV_SRC)/scale_gcc.o         \
+	$(LIBYUV_SRC)/scale_lsx.o         \
+	$(LIBYUV_SRC)/scale_msa.o         \
+	$(LIBYUV_SRC)/scale_neon.o        \
+	$(LIBYUV_SRC)/scale_neon64.o      \
+	$(LIBYUV_SRC)/scale_rgb.o         \
+	$(LIBYUV_SRC)/scale_rvv.o         \
+	$(LIBYUV_SRC)/scale_uv.o          \
+	$(LIBYUV_SRC)/scale_win.o         \
+	$(LIBYUV_SRC)/video_common.o
+
+all: fetch_libyuv $(YUV_NIF_SO)
 
 .cc.o:
 	$(CXX) -c $(CXXFLAGS) $*.cc -o $*.o
-
-all: $(YUV_NIF_SO)
 
 $(YUV_NIF_SO): $(LOCAL_OBJ_FILES) $(SRC)
 	mkdir -p $(PRIV_DIR)
 	$(CC) $(CFLAGS) $(IFLAGS) $(LFLAGS) $(SRC) $(LOCAL_OBJ_FILES) -o $(YUV_NIF_SO)
 
+fetch_libyuv: 
+	@mkdir -p $(LIBYUV_DIR)
+	@if [ ! -d "$(LIBYUV_DIR)/.git" ]; then \
+		git clone --depth=1 $(LIBYUV_GIT_REPO) $(LIBYUV_DIR); \
+	fi
+
 clean:
-	/bin/rm -f $(LOCAL_OBJ_FILES) $(YUV_NIF_SO)
+	/bin/rm -rf $(LIBYUV_DIR)
+	/bin/rm -f $(YUV_NIF_SO) $(LOCAL_OBJ_FILES)

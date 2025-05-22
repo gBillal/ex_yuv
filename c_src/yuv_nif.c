@@ -1,4 +1,4 @@
-#include "libyuv/include/libyuv.h"
+#include "libyuv.h"
 #include "erl_nif.h"
 
 static ERL_NIF_TERM am_badarg;
