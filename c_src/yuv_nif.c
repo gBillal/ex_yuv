@@ -12,7 +12,7 @@ static ERL_NIF_TERM raise_badarg(ErlNifEnv* env, ERL_NIF_TERM term)
 }
 
 static int get_atom(ErlNifEnv* env, ERL_NIF_TERM atom, char** atom_name) {
-    int atom_len;
+    unsigned int atom_len;
     if (!enif_get_atom_length(env, atom, &atom_len, ERL_NIF_LATIN1)) {
         return 0;
     }

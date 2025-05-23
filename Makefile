@@ -12,19 +12,25 @@ YUV_NIF_SO = $(PRIV_DIR)/yuv_nif.so
 CFLAGS = -shared -fPIC
 IFLAGS = -I$(LIBYUV_DIR)/include/ -I$(ERTS_INCLUDE_DIR)
 LDFLAGS = -L$(LIBYUV_BUILD) -lyuv
-LDFLAGS += -Wl,-rpath,'$$ORIGIN'
-LDFLAGS += -Wl,--allow-multiple-definition
 
 ifeq ($(shell uname -s),Darwin)
+	LIBNAME = libyuv.dylib
 	CFLAGS+=-undefined dynamic_lookup -flat_namespace
+	POST_INSTALL = install_name_tool $(YUV_NIF_SO) -change @rpath/$(LIBNAME)  @loader_path/$(LIBNAME)
+else
+	LIBNAME = libyuv.so
+	LDFLAGS += -Wl,-rpath,'$$ORIGIN'
+	LDFLAGS += -Wl,--allow-multiple-definition
+	POST_INSTALL = $(NOOP)
 endif
 
 all: $(LIBYUV_BUILD_FLAG) $(YUV_NIF_SO)
 
 $(YUV_NIF_SO): $(SRC)
 	@mkdir -p $(PRIV_DIR)
-	cp $(abspath $(LIBYUV_BUILD)/libyuv.so) $(PRIV_DIR)
+	cp $(LIBYUV_BUILD)/$(LIBNAME) $(PRIV_DIR)
 	$(CC) $(CFLAGS) $(IFLAGS) $(SRC) -o $(YUV_NIF_SO) $(LDFLAGS)
+	$(POST_INSTALL)
 
 $(LIBYUV_BUILD_FLAG): 
 	@mkdir -p $(LIBYUV_DIR)
@@ -38,6 +44,5 @@ $(LIBYUV_BUILD_FLAG):
 		touch $(LIBYUV_BUILD_FLAG)
 
 clean:
-	# /bin/rm -rf $(LIBYUV_DIR)
-	# /bin/rm -rf $(LIBYUV_BUILD)/*
+	/bin/rm -rf $(LIBYUV_DIR)
 	/bin/rm -rf $(YUV_NIF_SO)
