@@ -27,3 +27,6 @@ ex_yuv-*.tar
 
 # ignore .o files
 /c_src/libyuv/**/*.o
+
+# vscode
+settings.json
