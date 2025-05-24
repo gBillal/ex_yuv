@@ -30,3 +30,5 @@ ex_yuv-*.tar
 
 # vscode
 settings.json
+
+checksum.exs

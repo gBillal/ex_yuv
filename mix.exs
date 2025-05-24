@@ -34,6 +34,8 @@ defmodule ExYUV.MixProject do
     fn ->
       case System.get_env("CC_PRECOMPILER_CURRENT_TARGET", "") |> String.split("-") do
         [arch, os, _abi] ->
+          os = if os == "apple", do: "darwin", else: os
+
           %{
             "CMAKE_SYSTEM_NAME" => os,
             "CMAKE_SYSTEM_PROCESSOR" => arch
