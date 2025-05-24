@@ -39,9 +39,13 @@ $(LIBYUV_BUILD_FLAG):
 	fi
 	@mkdir -p $(LIBYUV_BUILD) && \
 		cd $(LIBYUV_BUILD) && \
-		cmake .. && \
+		sed 's|find_package ( JPEG )|#find_package ( JPEG )|' -i ../CMakeLists.txt && \
+		cmake -DCMAKE_SYSTEM_NAME=$(CMAKE_SYSTEM_NAME) -DCMAKE_SYSTEM_PROCESSOR=$(CMAKE_SYSTEM_PROCESSOR) .. && \
 		cmake --build . --config Release && \
 		touch $(LIBYUV_BUILD_FLAG)
+
+clean_build:
+	/bin/rm -rf $(LIBYUV_BUILD)/*
 
 clean:
 	/bin/rm -rf $(LIBYUV_DIR)
