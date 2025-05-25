@@ -11,6 +11,8 @@ defmodule ExYUV.MixProject do
       version: @version,
       elixir: "~> 1.14",
       compilers: [:elixir_make] ++ Mix.compilers(),
+      name: "ExYUV",
+      description: "Elixir binding for [libyub](https://chromium.googlesource.com/libyuv/libyuv/)",
       make_precompiler: {:nif, CCPrecompiler},
       make_precompiler_url:
         "https://github.com/gBillal/ex_yuv/releases/download/v#{@version}/@{artefact_filename}",
@@ -76,7 +78,8 @@ defmodule ExYUV.MixProject do
   defp package do
     [
       name: "ex_yuv",
-      files: ~w(c_src lib mix.exs README.md Makefile LICENSE),
+      files: ~w(c_src lib mix.exs README.md Makefile LICENSE checksum.exs),
+      licenses: ["Apache-2.0"],
       links: %{"Github" => @source_url}
     ]
   end
