@@ -9,7 +9,7 @@ on:
 jobs:
   linux:
     name: Linux Erlang/OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MIX_ENV: "prod"
     strategy:
@@ -41,15 +41,16 @@ jobs:
             cache/*.sha256
 
   macos:
-    runs-on: macOS arm64 - OPT ${{ matrix.otp_version }}
-    name: Mac (${{ matrix.runner == 'macos-13' && 'Intel' || 'ARM' }}) Erlang/OTP ${{matrix.otp}} / Elixir
+    runs-on: ${{ matrix.runner }}
+    name: macOS arm64 Erlang/OTP ${{matrix.otp_version}} / Elixir
     env:
       MIX_ENV: prod
       ELIXIR_VERSION: "1.14.0"
       OTP_VERSION: ${{ matrix.otp_version}}
     strategy:
       matrix:
-        otp: [24]
+        runner: [macos-14]
+        otp_version: [24]
     steps:
       - uses: actions/checkout@v4
       - name: Install OTP and Elixir
