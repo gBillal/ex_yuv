@@ -1,10 +1,9 @@
 name: precompile
 
 on:
-  pull_request:
-  # push:
-  #   tags:
-  #     - 'v*'
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   linux:
