@@ -15,7 +15,7 @@ defmodule ExYUV.MixProject do
       make_precompiler_url:
         "https://github.com/gBillal/ex_yuv/releases/download/v#{@version}/@{artefact_filename}",
       make_precompiler_nif_versions: [
-        versions: ["2.15", "2.16", "2.17"]
+        versions: ["2.15", "2.16"]
       ],
       make_precompiler_filename: "yuv_nif",
       make_env: make_env(),
