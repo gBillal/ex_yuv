@@ -1,0 +1,82 @@
+name: precompile
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  linux:
+    name: Linux Erlang/OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: "prod"
+    strategy:
+      matrix:
+        otp: [24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: 1.14
+      - name: Install system dependecies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential automake autoconf pkg-config bc m4 unzip zip \
+            gcc-i686-linux-gnu g++-i686-linux-gnu \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+      - name: Create precompiled library
+        run: |
+          export ELIXIR_MAKE_CACHE_DIR=$(pwd)/cache
+          mkdir -p "${ELIXIR_MAKE_CACHE_DIR}"
+
+          mix local.hex --force
+          mix local.rebar --force
+
+          mix deps.get
+          mix elixir_make.precompile
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            cache/*.tar.gz
+            cache/*.sha256
+
+  macos:
+    runs-on: ${{ matrix.runner }}
+    name: macOS arm64 Erlang/OTP ${{matrix.otp_version}} / Elixir
+    env:
+      MIX_ENV: prod
+      ELIXIR_VERSION: "1.16.2"
+      OTP_VERSION: ${{ matrix.otp_version}}
+    strategy:
+      matrix:
+        runner: [macos-14]
+        otp_version: ["25.3.2.8"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OTP and Elixir
+        run: |
+          curl -fsSO https://elixir-lang.org/install.sh
+          sh install.sh "elixir@${ELIXIR_VERSION}" "otp@${OTP_VERSION}"
+      - name: Create precompiled library
+        run: |
+          export OTP_MAIN_VER="${OTP_VERSION%%.*}"
+          export PATH=$HOME/.elixir-install/installs/otp/${OTP_VERSION}/bin:$PATH
+          export PATH=$HOME/.elixir-install/installs/elixir/${ELIXIR_VERSION}-otp-${OTP_MAIN_VER}/bin:$PATH
+
+          export ELIXIR_MAKE_CACHE_DIR=$(pwd)/cache
+          mkdir -p "${ELIXIR_MAKE_CACHE_DIR}"
+
+          mix local.hex --force
+          mix local.rebar --force
+
+          mix deps.get
+          mix elixir_make.precompile
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            cache/*.tar.gz
+            cache/*.sha256
