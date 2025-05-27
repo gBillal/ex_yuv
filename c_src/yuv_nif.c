@@ -4,6 +4,7 @@
 
 static ERL_NIF_TERM am_badarg;
 static ERL_NIF_TERM am_failed_to_convert;
+static ERL_NIF_TERM am_unknown_format;
 
 static ERL_NIF_TERM raise_badarg(ErlNifEnv* env, ERL_NIF_TERM term)
 {
@@ -33,8 +34,44 @@ static enum FilterMode filter_mode_from_string(const char* filter_mode) {
     }
 }
 
-ERL_NIF_TERM i420_to_raw(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
-    if (argc != 5) {
+static ERL_NIF_TERM convert_i420(ErlNifEnv *env, ErlNifBinary y_plane, ErlNifBinary u_plane, ErlNifBinary v_plane,
+                                 int width, int height, const char *out_format) {
+    int ret;
+    unsigned char *ptr;
+    ERL_NIF_TERM res;
+
+    int uv_stride = width / 2 + width % 2;
+
+    if (strcmp(out_format, "RAW") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 3, &res);
+        ret = I420ToRAW(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 3, width, height);
+    } else if (strcmp(out_format, "RGB24") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 3, &res);
+        ret = I420ToRGB24(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 3, width, height);
+    } else if (strcmp(out_format, "ARGB") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToARGB(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
+    } else if (strcmp(out_format, "ABGR") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToABGR(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
+    } else if (strcmp(out_format, "RGBA") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToRGBA(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
+    } else if (strcmp(out_format, "BGRA") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToBGRA(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
+    } else if (strcmp(out_format, "RGB565") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 2, &res);
+        ret = I420ToRGB565(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 2, width, height);
+    } else {
+        return raise_badarg(env, am_unknown_format);
+    }
+
+    return ret == 0 ? res : raise_badarg(env, am_failed_to_convert);
+}
+
+ERL_NIF_TERM convert_from_i420(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+    if (argc != 6) {
         return enif_make_badarg(env);
     }
 
@@ -42,6 +79,7 @@ ERL_NIF_TERM i420_to_raw(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
     ErlNifBinary u_plane;
     ErlNifBinary v_plane;
     int width, height;
+    char *out_format;
     
     if (!enif_inspect_binary(env, argv[0], &y_plane)) {
         return raise_badarg(env, argv[0]);
@@ -63,13 +101,12 @@ ERL_NIF_TERM i420_to_raw(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
         return raise_badarg(env, argv[4]);
     }
 
-    ERL_NIF_TERM res;
-    unsigned char *ptr = enif_make_new_binary(env, width * height * 3, &res);
-
-    if (I420ToRAW(y_plane.data, width, u_plane.data, width / 2,  v_plane.data, width / 2, ptr, width * 3, width, height)) {
-        return raise_badarg(env, am_failed_to_convert);
+    if (!get_atom(env, argv[5], &out_format)) {
+        return raise_badarg(env, argv[5]);
     }
 
+    ERL_NIF_TERM res = convert_i420(env, y_plane, u_plane, v_plane, width, height, out_format);
+    enif_free(out_format);
     return res;
 }
 
@@ -101,7 +138,9 @@ ERL_NIF_TERM raw_to_i420(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
     unsigned char *u_ptr = enif_make_new_binary(env, width * height / 4, &u_plane);
     unsigned char *v_ptr = enif_make_new_binary(env, width * height / 4, &v_plane);
 
-    if (RAWToI420(raw_data.data, width * 3, y_ptr, width, u_ptr, width / 2, v_ptr, width / 2, width, height)) {
+    int uv_stride = width / 2 + width % 2;
+
+    if (RAWToI420(raw_data.data, width * 3, y_ptr, width, u_ptr, uv_stride, v_ptr, uv_stride, width, height)) {
         return raise_badarg(env, am_failed_to_convert);
     }
 
@@ -159,8 +198,11 @@ ERL_NIF_TERM scale_i420(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
     unsigned char *u_ptr_out = enif_make_new_binary(env, out_width * out_height / 4, &u_plane_out);
     unsigned char *v_ptr_out = enif_make_new_binary(env, out_width * out_height / 4, &v_plane_out);
 
-    if (I420Scale(y_plane.data, width, u_plane.data, width / 2, v_plane.data, width / 2, width, height,
-                  y_ptr_out, out_width, u_ptr_out, out_width / 2, v_ptr_out, out_width / 2,
+    int uv_stride = width / 2 + width % 2;
+    int out_uv_stride = out_width / 2 + out_width % 2;
+
+    if (I420Scale(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, width, height,
+                  y_ptr_out, out_width, u_ptr_out, out_uv_stride, v_ptr_out, out_uv_stride,
                   out_width, out_height, filter_mode_from_string(filter_mode))) {
         enif_free(filter_mode);
         return raise_badarg(env, am_failed_to_convert);
@@ -174,6 +216,7 @@ ERL_NIF_TERM scale_i420(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
 static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info) {
     am_badarg = enif_make_atom(env, "badarg");
     am_failed_to_convert = enif_make_atom(env, "failed_to_convert");
+    am_unknown_format = enif_make_atom(env, "Unknown format");
     return 0;
 }
 
@@ -186,7 +229,7 @@ static int on_upgrade(ErlNifEnv *_sth0, void **_sth1, void **_sth2, ERL_NIF_TERM
 }
 
 static ErlNifFunc nif_funcs[] = {
-    {"i420_to_raw", 5, i420_to_raw, ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"convert_from_i420", 6, convert_from_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"raw_to_i420", 3, raw_to_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"scale_i420", 8, scale_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND}
 };

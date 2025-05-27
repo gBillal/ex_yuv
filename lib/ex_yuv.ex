@@ -22,11 +22,76 @@ defmodule ExYUV do
 
   The input should be the planes (Y, U and V), in case a binary is
   provided, it'll try to get the planes from it.
+
+  The memory layout of the result is `<<red::8, green::8, blue::8>>`
   """
   @spec i420_to_raw!(i420_data(), width(), height()) :: binary()
   def i420_to_raw!(data, width, height) do
-    {y_plane, u_plane, v_plane} = yuv_planes(data, width, height)
-    NIF.i420_to_raw(y_plane, u_plane, v_plane, width, height)
+    convert_from_i420(data, width, height, :RAW)
+  end
+
+  @doc """
+  Convert I420 to BGR24.
+
+  > ### Note {: .info}
+  >
+  > Even when the function name hints that the output format is RGB24, it's
+  > actually BGR24.
+  > We kept the same naming convention used in `libyuv`.
+  """
+  @spec i420_to_rgb24!(i420_data(), width(), height()) :: binary()
+  def i420_to_rgb24!(data, width, height) do
+    convert_from_i420(data, width, height, :RGB24)
+  end
+
+  @doc """
+  Convert I420 to ARGB.
+
+  The memory layout of the result is `<<blue::8, green::8, red::8, alpha::8>>`
+  """
+  @spec i420_to_argb!(i420_data(), width(), height()) :: binary()
+  def i420_to_argb!(data, width, height) do
+    convert_from_i420(data, width, height, :ARGB)
+  end
+
+  @doc """
+  Convert I420 to ABGR.
+
+  The memory layout of the result is `<<red::8, green::8, blue::8, alpha::8>>`
+  """
+  @spec i420_to_abgr!(i420_data(), width(), height()) :: binary()
+  def i420_to_abgr!(data, width, height) do
+    convert_from_i420(data, width, height, :ABGR)
+  end
+
+  @doc """
+  Convert I420 to RGBA.
+
+  The memory layout of the result is `<<alpha::8, blue::8, green::8, red::8>>`
+  """
+  @spec i420_to_rgba!(i420_data(), width(), height()) :: binary()
+  def i420_to_rgba!(data, width, height) do
+    convert_from_i420(data, width, height, :RGBA)
+  end
+
+  @doc """
+  Convert I420 to BGRA.
+
+  The memory layout of the result is `<<alpha::8, red::8, green::8, blue::8>>`
+  """
+  @spec i420_to_bgra!(i420_data(), width(), height()) :: binary()
+  def i420_to_bgra!(data, width, height) do
+    convert_from_i420(data, width, height, :BGRA)
+  end
+
+  @doc """
+  Convert I420 to RGB565.
+
+  The memory layout of the result is `<<blue::5, green::6, red::5>>`
+  """
+  @spec i420_to_rgb565!(i420_data(), width(), height()) :: binary()
+  def i420_to_rgb565!(data, width, height) do
+    convert_from_i420(data, width, height, :RGB565)
   end
 
   @doc """
@@ -35,6 +100,11 @@ defmodule ExYUV do
   @spec raw_to_i420!(binary(), width(), height()) :: yuv_planes()
   def raw_to_i420!(data, width, height) do
     NIF.raw_to_i420(data, width, height)
+  end
+
+  defp convert_from_i420(data, width, height, out_format) do
+    {y_plane, u_plane, v_plane} = yuv_planes(data, width, height)
+    NIF.convert_from_i420(y_plane, u_plane, v_plane, width, height, out_format)
   end
 
   @doc """
@@ -63,7 +133,9 @@ defmodule ExYUV do
 
   defp planes_from_binary(data, width, height, :I420) when is_binary(data) do
     y_plane_size = width * height
-    u_plane_size = div(width * height, 4)
+    u_width = div(width, 2) + rem(width, 2)
+    u_height = div(height, 2) + rem(height, 2)
+    u_plane_size = u_height * u_width
 
     <<y::binary-size(y_plane_size), u::binary-size(u_plane_size), v::binary-size(u_plane_size)>> =
       data

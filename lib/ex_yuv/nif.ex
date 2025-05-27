@@ -13,7 +13,7 @@ defmodule ExYUV.NIF do
     end
   end
 
-  def i420_to_raw(_y_plane, _u_plane, _v_plane, _width, _height) do
+  def convert_from_i420(_y_plane, _u_plane, _v_plane, _width, _height, _out_format) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
