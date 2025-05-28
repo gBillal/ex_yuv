@@ -1,7 +1,7 @@
 defmodule ExYUVTest do
   use ExUnit.Case
 
-  @i420_refs ~w(raw rgb24 argb abgr bgra rgba rgb565)
+  @i420_refs ~w(raw rgb24 argb abgr bgra rgba rgb565 argb1555 argb4444 ar30 ab30)
 
   Enum.map(@i420_refs, fn format ->
     test "convert I420 to #{format}" do

@@ -63,6 +63,18 @@ static ERL_NIF_TERM convert_i420(ErlNifEnv *env, ErlNifBinary y_plane, ErlNifBin
     } else if (strcmp(out_format, "RGB565") == 0) {
         unsigned char *ptr = enif_make_new_binary(env, width * height * 2, &res);
         ret = I420ToRGB565(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 2, width, height);
+    } else if (strcmp(out_format, "ARGB1555") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 2, &res);
+        ret = I420ToARGB1555(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 2, width, height);
+    } else if (strcmp(out_format, "ARGB4444") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 2, &res);
+        ret = I420ToARGB4444(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 2, width, height);
+    } else if (strcmp(out_format, "AR30") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToAR30(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
+    } else if (strcmp(out_format, "AB30") == 0) {
+        unsigned char *ptr = enif_make_new_binary(env, width * height * 4, &res);
+        ret = I420ToAB30(y_plane.data, width, u_plane.data, uv_stride, v_plane.data, uv_stride, ptr, width * 4, width, height);
     } else {
         return raise_badarg(env, am_unknown_format);
     }

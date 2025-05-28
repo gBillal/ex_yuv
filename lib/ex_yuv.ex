@@ -87,11 +87,51 @@ defmodule ExYUV do
   @doc """
   Convert I420 to RGB565.
 
-  The memory layout of the result is `<<blue::5, green::6, red::5>>`
+  The memory layout of the result is `<<red::5, green::6, blue::5>>`
   """
   @spec i420_to_rgb565!(i420_data(), width(), height()) :: binary()
   def i420_to_rgb565!(data, width, height) do
     convert_from_i420(data, width, height, :RGB565)
+  end
+
+  @doc """
+  Convert I420 to ARGB1555.
+
+  The memory layout of the result is `<<alpha::1, blue::5, green::5, red::5>>`
+  """
+  @spec i420_to_argb1555!(i420_data(), width(), height()) :: binary()
+  def i420_to_argb1555!(data, width, height) do
+    convert_from_i420(data, width, height, :ARGB1555)
+  end
+
+  @doc """
+  Convert I420 to ARGB4444.
+
+  The memory layout of the result is `<<alpha::4, blue::4, green::4, red::4>>`
+  """
+  @spec i420_to_argb4444!(i420_data(), width(), height()) :: binary()
+  def i420_to_argb4444!(data, width, height) do
+    convert_from_i420(data, width, height, :ARGB4444)
+  end
+
+  @doc """
+  Convert I420 to AR30.
+
+  The memory layout of the result is `<<alpha::2, red::10, green::10, blue::10>>`
+  """
+  @spec i420_to_ar30!(i420_data(), width(), height()) :: binary()
+  def i420_to_ar30!(data, width, height) do
+    convert_from_i420(data, width, height, :AR30)
+  end
+
+  @doc """
+  Convert I420 to AB30.
+
+  The memory layout of the result is `<<alpha::2, blue::10, green::10, red::10>>`
+  """
+  @spec i420_to_ab30!(i420_data(), width(), height()) :: binary()
+  def i420_to_ab30!(data, width, height) do
+    convert_from_i420(data, width, height, :AB30)
   end
 
   @doc """
