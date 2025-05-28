@@ -12,7 +12,8 @@ defmodule ExYUV.MixProject do
       elixir: "~> 1.14",
       compilers: [:elixir_make] ++ Mix.compilers(),
       name: "ExYUV",
-      description: "Elixir binding for [libyub](https://chromium.googlesource.com/libyuv/libyuv/)",
+      description:
+        "Elixir binding for [libyub](https://chromium.googlesource.com/libyuv/libyuv/)",
       make_precompiler: {:nif, CCPrecompiler},
       make_precompiler_url:
         "https://github.com/gBillal/ex_yuv/releases/download/v#{@version}/@{artefact_filename}",
