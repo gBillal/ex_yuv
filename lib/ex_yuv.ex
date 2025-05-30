@@ -97,7 +97,7 @@ defmodule ExYUV do
   @doc """
   Convert I420 to ARGB1555.
 
-  The memory layout of the result is `<<alpha::1, blue::5, green::5, red::5>>`
+  The memory layout of the result is `<<alpha::1, red::5, green::5, blue::5>>`
   """
   @spec i420_to_argb1555!(i420_data(), width(), height()) :: binary()
   def i420_to_argb1555!(data, width, height) do
@@ -107,7 +107,7 @@ defmodule ExYUV do
   @doc """
   Convert I420 to ARGB4444.
 
-  The memory layout of the result is `<<alpha::4, blue::4, green::4, red::4>>`
+  The memory layout of the result is `<<alpha::4, red::4, green::4, blue::4>>`
   """
   @spec i420_to_argb4444!(i420_data(), width(), height()) :: binary()
   def i420_to_argb4444!(data, width, height) do

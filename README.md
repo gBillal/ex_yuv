@@ -23,27 +23,28 @@ There are 2 core formats supported by libyuv - `I420` and `ARGB`. All YUV format
 
 Filtering functions such as scaling and planar functions work on `I420` and/or `ARGB`.
 
-### FOURCC (Four Charactacter Code) List
+### Planar Formats
 
-All the `FOURCC` list are available [here](https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/main/include/libyuv/video_common.h#52)
+| Format | Planes | Description |
+|--------|--------|-------------|
+| `I420` | 3      | Y full resolution. U half width, half height. V half width, half height |
 
-### The ARGB FOURCC
+### Packed Formats
 
-There are 4 ARGB layouts - ARGB, BGRA, ABGR and RGBA. ARGB is most common by far, used for screen formats,
+| Format | Bit Per Pixel | Pixel Memory Layout |
+|--------|---------------|---------------|
+| `RAW` (RGB) | 24       | `<<r::8, g::8, b::8>>` |
+| `RGB24` | 24           | `<<b::8, g::8, r::8>>` |
+| `ARGB`  | 32           | `<<b::8, g::8, r::8, a::8>>` |
+| `ABGR`  | 32           | `<<r::8, g::8, b::8, a::8>>` |
+| `BGRA`  | 32           | `<<a::8, r::8, g::8, b::8>>` |
+| `RGBA`  | 32           | `<<a::8, b::8, g::8, r::8>>` |
+| `RGB565`| 16           | `<<r::5, g::6, b::5>>` |
+| `RGB1555`| 16          | `<<a::1, r::5, g::6, b::5>>` |
+| `RGB4444`| 16          | `<<a::4, r::4, g::4, b::4>>` |
+| `AR30`  | 32          | `<<a::2, r::10, g::10, b::10>>` |
+| `AB30`  | 32          | `<<a::2, b::10, g::10, r::10>>` |
 
-These formats are presented as little endian in memory, so `ARGB` format is presented as `<<b::8, g::8, r::8, a::8>>`.
-
-```elixir
-argb = ExYUV.i420_to_argb!(data, width, height)
-```
-
-The memory presentation is equivalent to `BGRA`.
-
-### RGB24 and RAW
-
-There are two other RGB layouts - RGB24 (aka 24BG) and RAW
-
-RGB24 is B,G,R in memory RAW is R,G,B in memory
 
 ## Installation
 
