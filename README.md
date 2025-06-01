@@ -1,5 +1,8 @@
 # ExYUV
 
+[![Hex.pm](https://img.shields.io/hexpm/v/ex_yuv.svg)](https://hex.pm/packages/ex_yuv)
+[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/ex_yuv)
+
 Elixir binding for [libyuv](https://chromium.googlesource.com/libyuv/libyuv/).
 
 libyuv is an open source project that includes YUV scaling and conversion functionality.
@@ -53,7 +56,7 @@ The package can be installed by adding `ex_yuv` to your list of dependencies in 
 ```elixir
 def deps do
   [
-    {:ex_yuv, "~> 0.1.0"}
+    {:ex_yuv, "~> 0.2.0"}
   ]
 end
 ```
