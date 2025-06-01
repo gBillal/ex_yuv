@@ -1,4 +1,5 @@
 #include "libyuv.h"
+#include "libyuv/scale_rgb.h"
 #include "erl_nif.h"
 #include "string.h"
 
@@ -225,6 +226,69 @@ ERL_NIF_TERM scale_i420(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
     return enif_make_tuple3(env, y_plane_out, u_plane_out, v_plane_out);
 }
 
+ERL_NIF_TERM scale_argb(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]) {
+    if (argc != 7) {
+        return enif_make_badarg(env);
+    }
+
+    ErlNifBinary data;
+    int width, height, out_width, out_height;
+    char *filter_mode, *format;
+    
+    if (!enif_inspect_binary(env, argv[0], &data)) {
+        return raise_badarg(env, argv[0]);
+    }
+
+    if (!enif_get_int(env, argv[1], &width)) {
+        return raise_badarg(env, argv[1]);
+    }
+
+    if (!enif_get_int(env, argv[2], &height)) {
+        return raise_badarg(env, argv[2]);
+    }
+
+    if (!enif_get_int(env, argv[3], &out_width)) {
+        return raise_badarg(env, argv[3]);
+    }
+
+    if (!enif_get_int(env, argv[4], &out_height)) {
+        return raise_badarg(env, argv[4]);
+    }
+
+    if (!get_atom(env, argv[5], &filter_mode)) {
+        return raise_badarg(env, argv[5]);
+    }
+
+    if (!get_atom(env, argv[6], &format)) {
+        return raise_badarg(env, argv[6]);
+    }
+
+    ERL_NIF_TERM result;
+    unsigned char *out_data_ptr;
+    int ret;
+
+    if (strcmp(format, "RGB24") == 0) {
+        out_data_ptr = enif_make_new_binary(env, out_width * out_height * 3, &result);
+        ret = RGBScale(data.data, width * 3, width, height, out_data_ptr, out_width * 3, out_width, 
+                out_height, filter_mode_from_string(filter_mode));
+    } else if (strcmp(format, "ARGB") == 0) {
+        out_data_ptr = enif_make_new_binary(env, out_width * out_height * 4, &result);
+        ret = ARGBScale(data.data, width * 4, width, height, out_data_ptr, out_width * 4, out_width, 
+                    out_height, filter_mode_from_string(filter_mode));
+    } else {
+        result = raise_badarg(env, am_unknown_format);
+    }
+
+    if (ret < 0)
+        result = raise_badarg(env, am_failed_to_convert);
+
+
+    enif_free(filter_mode);
+    enif_free(format);
+
+    return result;
+}
+
 static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info) {
     am_badarg = enif_make_atom(env, "badarg");
     am_failed_to_convert = enif_make_atom(env, "failed_to_convert");
@@ -243,7 +307,8 @@ static int on_upgrade(ErlNifEnv *_sth0, void **_sth1, void **_sth2, ERL_NIF_TERM
 static ErlNifFunc nif_funcs[] = {
     {"convert_from_i420", 6, convert_from_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"raw_to_i420", 3, raw_to_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND},
-    {"scale_i420", 8, scale_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND}
+    {"scale_i420", 8, scale_i420, ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"scale_argb", 7, scale_argb, ERL_NIF_DIRTY_JOB_CPU_BOUND}
 };
 
 ERL_NIF_INIT(Elixir.ExYUV.NIF, nif_funcs, on_load, on_reload, on_upgrade, NULL);

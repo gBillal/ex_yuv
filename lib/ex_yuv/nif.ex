@@ -33,4 +33,8 @@ defmodule ExYUV.NIF do
       ) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  def scale_argb(_data, _width, _height, _out_width, _out_height, _filter_mode, _format) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end
