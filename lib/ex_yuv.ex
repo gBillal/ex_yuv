@@ -10,6 +10,11 @@ defmodule ExYUV do
   @type u_plane :: binary()
   @type v_plane :: binary()
 
+  @type argb_16 :: binary()
+  @type argb_32 :: binary()
+  @type rgb_16 :: binary()
+  @type rgb_24 :: binary()
+
   @type i420_data :: binary() | {y_plane(), u_plane(), v_plane()} | [binary()]
   @type yuv_planes :: {y_plane(), u_plane(), v_plane()}
 
@@ -25,7 +30,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<red::8, green::8, blue::8>>`
   """
-  @spec i420_to_raw!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_raw!(i420_data(), width(), height()) :: rgb_24()
   def i420_to_raw!(data, width, height) do
     convert_from_i420(data, width, height, :RAW)
   end
@@ -39,7 +44,7 @@ defmodule ExYUV do
   > actually BGR24.
   > We kept the same naming convention used in `libyuv`.
   """
-  @spec i420_to_rgb24!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_rgb24!(i420_data(), width(), height()) :: rgb_24()
   def i420_to_rgb24!(data, width, height) do
     convert_from_i420(data, width, height, :RGB24)
   end
@@ -49,7 +54,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<blue::8, green::8, red::8, alpha::8>>`
   """
-  @spec i420_to_argb!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_argb!(i420_data(), width(), height()) :: argb_32()
   def i420_to_argb!(data, width, height) do
     convert_from_i420(data, width, height, :ARGB)
   end
@@ -59,7 +64,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<red::8, green::8, blue::8, alpha::8>>`
   """
-  @spec i420_to_abgr!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_abgr!(i420_data(), width(), height()) :: argb_32()
   def i420_to_abgr!(data, width, height) do
     convert_from_i420(data, width, height, :ABGR)
   end
@@ -69,7 +74,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::8, blue::8, green::8, red::8>>`
   """
-  @spec i420_to_rgba!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_rgba!(i420_data(), width(), height()) :: argb_32()
   def i420_to_rgba!(data, width, height) do
     convert_from_i420(data, width, height, :RGBA)
   end
@@ -79,7 +84,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::8, red::8, green::8, blue::8>>`
   """
-  @spec i420_to_bgra!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_bgra!(i420_data(), width(), height()) :: argb_32()
   def i420_to_bgra!(data, width, height) do
     convert_from_i420(data, width, height, :BGRA)
   end
@@ -89,7 +94,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<red::5, green::6, blue::5>>`
   """
-  @spec i420_to_rgb565!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_rgb565!(i420_data(), width(), height()) :: rgb_16()
   def i420_to_rgb565!(data, width, height) do
     convert_from_i420(data, width, height, :RGB565)
   end
@@ -99,7 +104,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::1, red::5, green::5, blue::5>>`
   """
-  @spec i420_to_argb1555!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_argb1555!(i420_data(), width(), height()) :: argb_16()
   def i420_to_argb1555!(data, width, height) do
     convert_from_i420(data, width, height, :ARGB1555)
   end
@@ -109,7 +114,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::4, red::4, green::4, blue::4>>`
   """
-  @spec i420_to_argb4444!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_argb4444!(i420_data(), width(), height()) :: argb_16()
   def i420_to_argb4444!(data, width, height) do
     convert_from_i420(data, width, height, :ARGB4444)
   end
@@ -119,7 +124,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::2, red::10, green::10, blue::10>>`
   """
-  @spec i420_to_ar30!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_ar30!(i420_data(), width(), height()) :: argb_32()
   def i420_to_ar30!(data, width, height) do
     convert_from_i420(data, width, height, :AR30)
   end
@@ -129,7 +134,7 @@ defmodule ExYUV do
 
   The memory layout of the result is `<<alpha::2, blue::10, green::10, red::10>>`
   """
-  @spec i420_to_ab30!(i420_data(), width(), height()) :: binary()
+  @spec i420_to_ab30!(i420_data(), width(), height()) :: argb_32()
   def i420_to_ab30!(data, width, height) do
     convert_from_i420(data, width, height, :AB30)
   end
@@ -137,7 +142,7 @@ defmodule ExYUV do
   @doc """
   Converts from RGB24 to I420 format.
   """
-  @spec raw_to_i420!(binary(), width(), height()) :: yuv_planes()
+  @spec raw_to_i420!(rgb_24(), width(), height()) :: yuv_planes()
   def raw_to_i420!(data, width, height) do
     NIF.raw_to_i420(data, width, height)
   end
@@ -161,6 +166,35 @@ defmodule ExYUV do
       when filter_mode in @filter_modes do
     {y_plane, u_plane, v_plane} = yuv_planes(data, width, height)
     NIF.scale_i420(y_plane, u_plane, v_plane, width, height, out_width, out_height, filter_mode)
+  end
+
+  @doc """
+  Scale ARGB/ABGR/RGBA/BGRA image.
+
+  The following filters are supported: `none`, `linear`, `bilinear`, and `box`.
+
+  Check [libyuv](https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/main/docs/filtering.md) documentation for more details.
+  """
+  @spec scale_argb!(argb_32(), width(), height(), width(), height()) :: argb_32()
+  @spec scale_argb!(argb_32(), width(), height(), width(), height(), filter_mode()) ::
+          argb_32()
+  def scale_argb!(data, width, height, out_width, out_height, filter_mode \\ :none)
+      when filter_mode in @filter_modes do
+    NIF.scale_argb(data, width, height, out_width, out_height, filter_mode, :ARGB)
+  end
+
+  @doc """
+  Scale RAW/RGB24 image.
+
+  The following filters are supported: `none`, `linear`, `bilinear`, and `box`.
+
+  Check [libyuv](https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/main/docs/filtering.md) documentation for more details.
+  """
+  @spec scale_rgb!(rgb_24(), width(), height(), width(), height()) :: rgb_24()
+  @spec scale_rgb!(rgb_24(), width(), height(), width(), height(), filter_mode()) :: rgb_24()
+  def scale_rgb!(data, width, height, out_width, out_height, filter_mode \\ :none)
+      when filter_mode in @filter_modes do
+    NIF.scale_argb(data, width, height, out_width, out_height, filter_mode, :RGB24)
   end
 
   defp yuv_planes(data, width, height) do

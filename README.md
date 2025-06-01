@@ -31,7 +31,7 @@ Filtering functions such as scaling and planar functions work on `I420` and/or `
 
 ### Packed Formats
 
-| Format | Bit Per Pixel | Pixel Memory Layout |
+| Format | Bits Per Pixel | Pixel Memory Layout |
 |--------|---------------|---------------|
 | `RAW` (RGB) | 24       | `<<r::8, g::8, b::8>>` |
 | `RGB24` | 24           | `<<b::8, g::8, r::8>>` |
